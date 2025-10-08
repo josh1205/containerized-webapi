@@ -11,11 +11,12 @@ def health():
 def get_value():
     value = os.getenv("WEB_API_VALUE")
 
-    if value is None:
+    if value is None or value.strip() == "":
         return "Web api value is not set", 500
 
     return value, 200
 
 if __name__ == "__main__":
     port = int(os.getenv("WEB_API_PORT", 5001))
+    print(f"Application is listening on port {port}")
     app.run(host="0.0.0.0", port=port, debug=True)
