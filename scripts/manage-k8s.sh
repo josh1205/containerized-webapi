@@ -7,23 +7,27 @@
 # resources in the cluster.
 #
 # Usage:
-#   ./manage-k8s.sh {deploy|scrap}
+#   ./manage-k8s.sh {deploy|scrap|upgrade}
 # Examples:
 #   ./manage-k8s.sh deploy
 #   ./manage-k8s.sh scrap
+#   ./manage-k8s.sh upgrade
 #===============================================================================
 
 set -e
 
 function usage() {
-  echo "Usage: $0 {deploy|scrap}"
+  echo "Usage: $0 {deploy|scrap|upgrade}"
   echo
   echo "Examples:"
   echo "  $0 deploy"
   echo "  $0 scrap"
+  echo "  $0 upgrade"
 }
 
 function deploy() {
+  local -r action=${1:-"deploy"}
+
   echo "Applying Kubernetes manifests..."
 
   kubectl apply -f "$K8S_DIR"/namespace.yaml
@@ -40,8 +44,10 @@ function deploy() {
   done
   echo "Kubernetes manifests applied."
 
-  echo "Waiting for deployment to roll out..."
-  kubectl rollout status deployment/"$DEPLOYMENT_NAME" -n "$NAMESPACE"
+  if [[ "$action" == "upgrade" ]]; then
+    echo "Waiting for deployment rollout to complete..."
+    kubectl rollout restart deployment/"$DEPLOYMENT_NAME" -n "$NAMESPACE"
+  fi
 
   kubectl get all -n "$NAMESPACE"
 }
@@ -75,6 +81,9 @@ case $COMMAND in
     ;;
   scrap)
     scrap
+    ;;
+  upgrade)
+    deploy "upgrade"
     ;;
   *)
     echo "Usage: $0 {start|stop|restart}"

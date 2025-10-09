@@ -135,10 +135,12 @@ The project includes a `scripts/manage-k8s.sh` script that automates deployment:
 
 1. Deploy to the default namespace (`flask-app`):
 2. Remove all resources from project
+3. Upgrade resources
 
 ```bash
 ./manage-k8s.sh deploy
 ./manage-k8s.sh scrap
+./manage-k8s.sh upgrade
 ```
 
 ### 3. Deployment Details
@@ -151,7 +153,7 @@ The Kubernetes Deployment is configured with the following:
 | Namespace             | `flask-app`                                         |
 | Replicas              | `2`                                                 |
 | Container Name        | `containerized-webapi`                              |
-| Container Image       | `ghcr.io/josh1205/containerized-webapi:latest`      |
+| Container Image       | `ghcr.io/josh1205/containerized-webapi:v1.0.1`      |
 | Container Port        | `5001`                                              |
 | Environment Variables | `WEB_API_PORT`, `WEB_API_VALUE` (from ConfigMap)    |
 | Service Type          | `NodePort` (exposes pods externally on a node port) |

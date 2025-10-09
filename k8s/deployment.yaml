@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
         - name: containerized-webapi
-          image: ghcr.io/josh1205/containerized-webapi:latest
-          imagePullPolicy: Always
+          image: ghcr.io/josh1205/containerized-webapi:v1.0.1
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 6000
           env:
