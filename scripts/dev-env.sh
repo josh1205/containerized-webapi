@@ -8,12 +8,12 @@
 # overridden via command line arguments.
 #
 # Usage:
-#   ./dev-env.sh start [--api_port_1 PORT] [--api_port_2 PORT] [--api_value_1 VALUE] [--api_value_2 VALUE] [--container_name NAME]
+#   ./dev-env.sh start [--api_port PORT] [--api_value VALUE] [--container_name NAME]
 #   ./dev-env.sh stop
-#   ./dev-env.sh restart [--api_port_1 PORT] [--api_port_2 PORT] [--api_value_1 VALUE] [--api_value_2 VALUE] [--container_name NAME]
+#   ./dev-env.sh restart [--api_port PORT] [--api_value VALUE] [--container_name NAME]
 #
 # Examples:
-#   ./dev-env.sh start --api_port_1 5000 --api_port_2 5001 --api_value_1 "Hello 1" --api_value_2 "Hello 2"
+#   ./dev-env.sh start --api_port 5000 --api_value "Hello 1"
 #   ./dev-env.sh stop
 #   ./dev-env.sh restart
 #===============================================================================
@@ -25,10 +25,10 @@ set -e
 # Displays instructions on how to run the script.
 ##################################################################################
 function usage() {
-  echo "Usage: $0 {start|stop|restart} [--api_port_1 PORT] [--api_port_2 PORT] [--api_value_1 VALUE] [--api_value_2 VALUE] [--container_name NAME]"
+  echo "Usage: $0 {start|stop|restart} [--api_port PORT] [--api_value VALUE] [--container_name NAME]"
   echo
   echo "Examples:"
-  echo "  $0 start --api_port_1 5000 --api_port_2 5001 --api_value_1 'Hello 1' --api_value_2 'Hello 2'"
+  echo "  $0 start --api_port 5000 --api_value 'Hello 1'"
   echo "  $0 restart"
   echo "  $0 stop"
 }
@@ -39,8 +39,11 @@ function usage() {
 ###############################################################################
 function stop() {
   # Grabbing container IDs and stopping/removing them by passing them to docker rm command if found
-  docker ps --format '{{.Names}}' | grep "${CONTAINER_NAME}-" | xargs -r docker rm -f
-  echo "Stopped and removed containers ${CONTAINER_NAME}-1 and ${CONTAINER_NAME}-2 if they were running."
+  if docker ps --format '{{.Names}}' | grep "${CONTAINER_NAME}-" | xargs -r docker rm -f; then
+    echo "Stopped and removed containers ${CONTAINER_NAME}-1 and ${CONTAINER_NAME}-2 if they were running."
+  else
+    echo "Error occurred while stopping/removing containers or no containers were running."
+  fi
 }
 
 #################################################################################
@@ -52,22 +55,22 @@ function start() {
   echo "Building Docker image..."
 
   # Build docker image
-  docker build -t $CONTAINER_NAME .
+  docker build -t $CONTAINER_NAME:latest ..
 
   echo "Running containers 1 and 2..."
   # Run container 1
   docker run -d \
-    -e WEB_API_PORT=$WEB_API_PORT_1 \
-    -e WEB_API_VALUE="$WEB_API_VALUE_1" \
-    -p 8080:$WEB_API_PORT_1 \
+    -e WEB_API_PORT=$WEB_API_PORT \
+    -e WEB_API_VALUE="$WEB_API_VALUE" \
+    -p 8081:$WEB_API_PORT \
     --name "${CONTAINER_NAME}-1" \
     $CONTAINER_NAME
 
   # Run container 2
   docker run -d \
-    -e WEB_API_PORT=$WEB_API_PORT_2 \
-    -e WEB_API_VALUE="$WEB_API_VALUE_2" \
-    -p 8081:$WEB_API_PORT_2 \
+    -e WEB_API_PORT=$WEB_API_PORT \
+    -e WEB_API_VALUE="$WEB_API_VALUE" \
+    -p 8082:$WEB_API_PORT \
     --name "${CONTAINER_NAME}-2" \
     $CONTAINER_NAME
 }
@@ -78,10 +81,8 @@ function start() {
 
 # Default configurations
 CONTAINER_NAME="containerized-webapi"
-WEB_API_PORT_1=5000
-WEB_API_PORT_2=5000
-WEB_API_VALUE_1="This is a fun project from Container 1"
-WEB_API_VALUE_2="This is a fun project from Container 2"
+WEB_API_PORT=5001
+WEB_API_VALUE="This is a fun project"
 
 # First argument must be the command
 if [[ $# -lt 1 ]]; then
@@ -96,20 +97,12 @@ shift
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --api_port_1)
-      WEB_API_PORT_1="$2"
+    --api_port)
+      WEB_API_PORT="$2"
       shift 2
       ;;
-    --api_port_2)
-      WEB_API_PORT_2="$2"
-      shift 2
-      ;;
-    --api_value_1)
-      WEB_API_VALUE_1="$2"
-      shift 2
-      ;;
-    --api_value_2)
-      WEB_API_VALUE_2="$2"
+    --api_value)
+      WEB_API_VALUE="$2"
       shift 2
       ;;
     --container_name)

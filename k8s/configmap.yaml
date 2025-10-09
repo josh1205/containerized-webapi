@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: containerized-webapi-config
+  namespace: flask-app
+data:
+  WEB_API_VALUE: "Dit is 'n pret projek"
+  WEB_API_PORT: "6000"

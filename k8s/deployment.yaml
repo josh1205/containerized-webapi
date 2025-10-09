@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: containerized-webapi-deployment
+  namespace: flask-app
+  labels:
+    app: containerized-webapi
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: containerized-webapi
+  template:
+    metadata:
+      labels:
+        app: containerized-webapi
+    spec:
+      containers:
+        - name: containerized-webapi
+          image: ghcr.io/josh1205/containerized-webapi:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 6000
+          env:
+            - name: WEB_API_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: containerized-webapi-config
+                  key: WEB_API_PORT
+            - name: WEB_API_VALUE
+              valueFrom:
+                configMapKeyRef:
+                  name: containerized-webapi-config
+                  key: WEB_API_VALUE
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 6000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 6000
+            initialDelaySeconds: 5
+            periodSeconds: 10
